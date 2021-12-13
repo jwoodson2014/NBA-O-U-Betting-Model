@@ -10,4 +10,4 @@ Any NBA game can be boiled down to 3 factors:
 
 Based on these factors we can project how many posessions will occur in a game as well as the projected amount of points scored and given up by both teams based on the pace at which the game will be played
 
-*Model will be updated as I continue to consider more factors and research different methods of simulation
+*Model will continue to be updated as I continue to consider more factors and research different methods of simulation
