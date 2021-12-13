@@ -1,0 +1,246 @@
+from nba_api.stats.endpoints import leaguedashteamstats
+from nba_api.stats.endpoints import scoreboard
+import datetime 
+import requests
+import json
+import pandas as pd
+import numpy as np
+import openpyxl
+
+#scrape traditional stats from nba.com
+response = leaguedashteamstats.LeagueDashTeamStats(
+    team_id_nullable='0',
+    league_id_nullable='00',
+    season= '2021-22',
+    season_type_all_star='Regular Season',
+    headers={'Accept': 'application/json, text/plain, */*',
+'Accept-Encoding': 'gzip, deflate, br',
+'Accept-Language': 'en-US,en;q=0.9',
+'Connection': 'keep-alive',
+'Host': 'stats.nba.com',
+'Origin': 'https://www.nba.com',
+'Referer': 'https://www.nba.com/',
+'sec-ch-ua': '"Google Chrome";v="87", "\"Not;A\\Brand";v="99", "Chromium";v="87"',
+'sec-ch-ua-mobile': '?1',
+'Sec-Fetch-Dest': 'empty',
+'Sec-Fetch-Mode': 'cors',
+'Sec-Fetch-Site': 'same-site',
+'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safari/537.36',
+'x-nba-stats-origin': 'stats',
+'x-nba-stats-token': 'true'})
+
+#save traditional stats to a df
+LeagueTraditional = response.get_data_frames()[0]
+LeagueTraditional.to_excel(r'LeagueStatsTraditional.xlsx')
+
+#scrape advanced stats from nba.com
+response = leaguedashteamstats.LeagueDashTeamStats(
+    team_id_nullable='0',
+    league_id_nullable='00',
+    season= '2021-22',
+    season_type_all_star='Regular Season',
+    measure_type_detailed_defense = 'Advanced',
+    headers={'Accept': 'application/json, text/plain, */*',
+'Accept-Encoding': 'gzip, deflate, br',
+'Accept-Language': 'en-US,en;q=0.9',
+'Connection': 'keep-alive',
+'Host': 'stats.nba.com',
+'Origin': 'https://www.nba.com',
+'Referer': 'https://www.nba.com/',
+'sec-ch-ua': '"Google Chrome";v="87", "\"Not;A\\Brand";v="99", "Chromium";v="87"',
+'sec-ch-ua-mobile': '?1',
+'Sec-Fetch-Dest': 'empty',
+'Sec-Fetch-Mode': 'cors',
+'Sec-Fetch-Site': 'same-site',
+'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safari/537.36',
+'x-nba-stats-origin': 'stats',
+'x-nba-stats-token': 'true'})
+
+#save advanced stats to a df
+LeagueAdvanced = response.get_data_frames()[0]
+LeagueAdvanced.to_excel(r'LeagueStatsAdvanced.xlsx')
+
+#scrape opponent stats from nba.com
+response = leaguedashteamstats.LeagueDashTeamStats(
+    team_id_nullable='0',
+    league_id_nullable='00',
+    season= '2021-22',
+    season_type_all_star='Regular Season',
+    measure_type_detailed_defense = 'Opponent',
+    headers={'Accept': 'application/json, text/plain, */*',
+'Accept-Encoding': 'gzip, deflate, br',
+'Accept-Language': 'en-US,en;q=0.9',
+'Connection': 'keep-alive',
+'Host': 'stats.nba.com',
+'Origin': 'https://www.nba.com',
+'Referer': 'https://www.nba.com/',
+'sec-ch-ua': '"Google Chrome";v="87", "\"Not;A\\Brand";v="99", "Chromium";v="87"',
+'sec-ch-ua-mobile': '?1',
+'Sec-Fetch-Dest': 'empty',
+'Sec-Fetch-Mode': 'cors',
+'Sec-Fetch-Site': 'same-site',
+'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safari/537.36',
+'x-nba-stats-origin': 'stats',
+'x-nba-stats-token': 'true'})
+
+#save opponent stats to a df
+LeagueOpponent = response.get_data_frames()[0]
+LeagueOpponent.to_excel(r'LeagueStatsOpponent.xlsx')
+
+#scrape the day's scoreboard from nba.com
+response = scoreboard.Scoreboard(
+    league_id='00',
+    game_date=str(datetime.date.today()),
+    headers={'authority': 'cdn.nba.com',
+'method': 'GET',
+'path': '/static/json/liveData/scoreboard/todaysScoreboard_00.json',
+'scheme': 'https',
+'accept': '*/*',
+'accept-encoding': 'gzip, deflate, br',
+'accept-language': 'en-US,en;q=0.9',
+'if-modified-since': 'Sat, 23 Oct 2021 22:53:44 GMT',
+'if-none-match': '"5ae7b2ac2f08104282d8f6c20300c053"',
+'origin': 'https://www.nba.com',
+'referer': 'https://www.nba.com/',
+'sec-ch-ua': '"Google Chrome";v="95", "Chromium";v="95", ";Not A Brand";v="99"',
+'sec-ch-ua-mobile': '?0',
+'sec-ch-ua-platform': '"Windows"',
+'sec-fetch-dest': 'empty',
+'sec-fetch-mode': 'cors',
+'sec-fetch-site': 'same-site',
+'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.54 Safari/537.36'})
+
+#save the scoreboard to a df
+LeagueScoreboard = response.get_data_frames()[0]
+LeagueScoreboard.to_excel(r'LeagueScoreboard.xlsx')
+
+#create a df with the following columns that will pull data from the df's created above
+OU_Model = pd.DataFrame(columns=['TeamID',
+                                 'Team',
+                                 'PTS',
+                                 'OPP PTS',
+                                 'POSS',
+                                 'PACE',
+                                 'PTS/POSS',
+                                 'OPP PTS/POSS'])
+
+#copying team id's to ou_model
+OU_Model['TeamID'] = LeagueTraditional['TEAM_ID']
+
+#calculating values in ou_model from the df's that were scraped from nba.com for each teamid
+OU_Model['Team'] = LeagueTraditional['TEAM_NAME'].where(OU_Model['TeamID'] == LeagueTraditional['TEAM_ID'])
+OU_Model['PTS'] = LeagueTraditional['PTS'].where(OU_Model['TeamID'] == LeagueTraditional['TEAM_ID'])
+OU_Model['OPP PTS'] = LeagueOpponent['OPP_PTS'].where(OU_Model['TeamID'] == LeagueOpponent['TEAM_ID'])
+OU_Model['POSS'] = LeagueAdvanced['POSS'].where(OU_Model['TeamID'] == LeagueAdvanced['TEAM_ID'])
+OU_Model['PACE'] = LeagueAdvanced['PACE'].where(OU_Model['TeamID'] == LeagueAdvanced['TEAM_ID'])
+
+OU_Model['PTS/POSS'] = OU_Model['PTS']/OU_Model['POSS']
+OU_Model['OPP PTS/POSS'] = OU_Model['OPP PTS']/OU_Model['POSS']
+
+#saving ou_model df to excel
+OU_Model.to_excel(r'OU_Model.xlsx','Master Sheet')
+
+#creating function to calculate projected o/u for the day's games
+def get_todays_games(df1,df2):
+    
+    #creating new df
+    df3 = df1[['HOME_TEAM_ID','VISITOR_TEAM_ID']]
+    
+    #add the following columns to the new df
+    df3['Home Pts Poss'] = ''
+    df3['Home Opp Pts Poss'] = ''
+    df3['Visitor Pts Poss'] = ''
+    df3['Visitor Opp Pts Poss'] = ''
+    df3['Home Pace'] = ''
+    df3['Visitor Pace'] = ''
+    df3['Proj Home Total'] = ''
+    df3['Proj Visitor Total'] = ''
+    df3['Proj Total'] = ''
+    df3['Fan Duel Total'] = ''
+    df3['Decision'] = ''
+    
+    df3.insert(2,'Home Team','')
+    df3.insert(3,'Visitor Team','')
+    
+    #interate through each index position in the ou_model
+    for idx in df2.index:
+        item1 = df2.at[idx,'TeamID']
+        team = df2.at[idx,'Team']
+        pts = df2.at[idx,'PTS/POSS']
+        opp_pts = df2.at[idx,'OPP PTS/POSS']
+        pace = df2.at[idx,'PACE']
+        
+        #iterate through each index position in the new df
+        for idx in df3.index:
+            
+            item2 = df3.at[idx,'HOME_TEAM_ID']
+            item3 = df3.at[idx,'VISITOR_TEAM_ID']
+            
+            #if home_tead_id is equal to the teamid at the index position in the ou_model
+            if item2 == item1:
+                df3.at[idx,'Home Team'] = team
+                df3.at[idx,'Home Pts Poss'] = pts
+                df3.at[idx,'Home Opp Pts Poss'] = opp_pts
+                df3.at[idx,'Home Pace'] = pace
+            #if visitor_team_id is equal to the teamid at the index position in the ou_model
+            elif item3 == item1:
+                df3.at[idx,'Visitor Team'] = team
+                df3.at[idx,'Visitor Pts Poss'] = pts
+                df3.at[idx,'Visitor Opp Pts Poss'] = opp_pts
+                df3.at[idx,'Visitor Pace'] = pace
+            #if teamid is not found
+            else:    
+                continue
+    #iterate through each index position in the new df
+    for idx in df3.index:
+        
+        #calculate the max and min pace for teams in each matchup
+        max_pace = max(df3.at[idx,'Home Pace'],df3.at[idx,'Visitor Pace'])
+        min_pace = min(df3.at[idx,'Home Pace'],df3.at[idx,'Visitor Pace'])
+        
+        #calculate the proj home and visitor score based on their pts/poss, what the other team is allowing opponents, and the min and max pace of the matchup
+        proj_home_avg = ((max_pace * df3.at[idx,'Home Pts Poss']) + (min_pace * df3.at[idx,'Home Pts Poss']))/2
+        proj_home_opp_avg = ((max_pace * df3.at[idx,'Visitor Opp Pts Poss']) + (min_pace * df3.at[idx,'Visitor Opp Pts Poss']))/2
+        proj_visitor_avg = ((max_pace * df3.at[idx,'Visitor Pts Poss']) + (min_pace * df3.at[idx,'Visitor Pts Poss']))/2
+        proj_visitor_opp_avg = ((max_pace * df3.at[idx,'Home Opp Pts Poss']) + (min_pace * df3.at[idx,'Home Opp Pts Poss']))/2
+        
+        #calculate the proj home and vistor total based on the calculations above
+        df3.at[idx,'Proj Home Total'] = (proj_home_avg + proj_home_opp_avg)/2
+        df3.at[idx,'Proj Visitor Total'] = (proj_visitor_avg + proj_visitor_opp_avg)/2
+        
+        #calculate the proj total of the game
+        df3['Proj Total'] = df3['Proj Home Total'] + df3['Proj Visitor Total']
+    
+    #iterate through each index position of the new df
+    for idx in df3.index:
+        
+        #input the total per fan duel for each matchup
+        df3.at[idx,'Fan Duel Total'] = float(input('{} @ {}  '.format(df3.at[idx,'Visitor Team'],df3.at[idx,'Home Team'])))
+    
+    #iterate through each index position of thew new df
+    for idx in df3.index:
+        
+        #if the proj total of the matchup < fan duel total = bet the under, if not bet the over
+        if df3.at[idx,'Proj Total'] < df3.at[idx,'Fan Duel Total']:
+            df3.at[idx,'Decision'] = 'Under'
+        else:
+            df3.at[idx,'Decision'] = 'Over'
+    
+    #display the columns below after the the decisions are made        
+    pd.set_option('display.max_columns',None)
+    pd.set_option('display.width',1000)
+    print(df3[['Home Team','Visitor Team','Proj Total','Fan Duel Total','Decision']])
+
+#pass leaguescoreboard and ou_model through the function
+get_todays_games(LeagueScoreboard,OU_Model)
+
+#print model has been updated successfully
+print('Model Updated Successfully!')
+
+
+
+
+
+
+
+
