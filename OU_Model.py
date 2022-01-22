@@ -281,6 +281,7 @@ def get_todays_games(df1,df2):
     
     print('Calculating projected totals....')
     
+    #set the random seed so results can be easily reproduced
     random.seed(0)
     
     #creating new df
